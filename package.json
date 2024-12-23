@@ -16,13 +16,24 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "mkh-codeformatter.formatCode",
-        "title": "Format Code"
+  "commands": [
+    {
+      "command": "mkh-codeformatter.formatCode",
+      "title": "Format Code"
+    }
+  ],
+  "configuration": {
+    "type": "object",
+    "title": "MKH Code Formatter Settings",
+    "properties": {
+      "mkhCodeFormatter.indentationSize": {
+        "type": "number",
+        "default": 2,
+        "description": "Number of spaces to use for indentation."
       }
-    ]
-  },
+    }
+  }
+},
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
