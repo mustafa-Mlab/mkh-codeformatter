@@ -50,10 +50,11 @@ jobs:
           ref: main
 
       # Install Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 'lts' # Always use the latest LTS version of Node.js
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 'lts/*' # Use the latest LTS version
+
 
       # Install dependencies
       - name: Install Dependencies
