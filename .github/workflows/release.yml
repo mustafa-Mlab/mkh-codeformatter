@@ -61,7 +61,9 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: npm run test
+        run: |
+          npx vscode-test --disable-gpu --no-sandbox
+
 
       # Compile the extension
       - name: Compile Extension
