@@ -1,48 +1,60 @@
-# mkh-codeformatter
+# mkhCodeFormatter
 
-**mkh-codeformatter** is a custom VS Code extension for formatting code with 2-space indentation across all languages.
+**mkhCodeFormatter** is a lightweight and universal code formatter designed to format any programming language or file type in Visual Studio Code. With its simple 2-space indentation logic, this formatter ensures your code looks clean and professional.
 
 ## Features
 
-- Automatically formats code blocks using 2-space indentation.
-- Works universally with any language or file type.
-- Adjusts indentation based on:
-  - Opening/closing tags (`<tag>`, `{`, `[`, etc.).
-  - Nested structures in languages like HTML, CSS, JavaScript, and PHP.
-
-### Demo
-
-![image](https://raw.githubusercontent.com/yourusername/mkh-codeformatter/main/images/demo.gif)
-
+- Formats any file type (HTML, CSS, PHP, JavaScript, TypeScript, Vue, React, Blade, etc.).
+- Customizable indentation size via settings.
+- Handles comments and ensures they are indented correctly.
+- Aligns `switch-case`, braces, and other language-specific constructs.
+- Quickly format your code using the shortcut `Ctrl+Alt+F`.
 
 ## Requirements
 
-No additional requirements. Just install the extension, and you’re ready to go!
-
-## Usage
-
-1. Open a file in VS Code.
-2. Run the command: **`mkh-codeformatter.formatCode`** from the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS).
-3. Your file will be automatically formatted.
+- Visual Studio Code v1.96.0 or higher.
 
 ## Extension Settings
 
-This extension doesn’t require additional configuration. Future updates might include customizable settings.
+This extension contributes the following settings:
+
+- **`mkhCodeFormatter.indentationSize`**: Specify the number of spaces for indentation. Default is `2`.
+
+## How to Use
+
+1. Open a file in VS Code.
+2. Press `Ctrl+Alt+F` to format the document instantly.
+3. Alternatively, press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) and type `Format Code`.
+4. Select `mkhCodeFormatter: Format Code` from the command palette.
 
 ## Known Issues
 
-- Complex file structures with mixed syntax might need further refinement.
+- Alignment issues in specific edge cases (e.g., deeply nested constructs).
+- Some advanced syntax for custom languages might not be fully supported.
 
 ## Release Notes
 
-### 0.0.1
-- Initial release with basic code formatting functionality.
+### 1.0.0
+
+- Initial release with support for universal code formatting.
+- Handles common file types like HTML, PHP, CSS, JavaScript, and TypeScript.
 
 ---
 
-## Resources and References
+## For Developers
 
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-- [Visual Studio Code API Documentation](https://code.visualstudio.com/api)
+To contribute or debug the extension:
 
-**Enjoy your cleaner code!**
+1. Clone the repository: 
+   ```
+   git clone https://github.com/mustafa-Mlab/mkh-codeformatter
+   ```
+2. Install dependencies: 
+   ```
+   npm install
+   ```
+3. Run the extension: Press `F5` in VS Code.
+
+---
+
+**Created by Mustafa Kamal Hossain. Enjoy using mkhCodeFormatter!**

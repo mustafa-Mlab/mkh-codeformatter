@@ -1,73 +1,44 @@
-# Welcome to mkh-codeformatter Extension Development
+# Welcome to mkhCodeFormatter
 
 ## What's in the Folder
 
-- **`package.json`**: The manifest file for your extension.
-  - Declares your extension's metadata, commands, and contributions.
-- **`src/extension.ts`**: The main file where your extension logic is implemented.
-  - Exports the `activate` function, which registers your extension's commands and logic.
-- **`src/test/extension.test.ts`**: A sample test file to ensure your extension works as expected.
+- `package.json`: The manifest file declaring the extension and its command.
+- `src/extension.ts`: The main file implementing the formatter logic.
+- `README.md`: Documentation about the extension.
+- `CHANGELOG.md`: Details about updates and changes in each release.
 
 ## Setup
 
-1. Install the recommended extensions:
-   - [TSLint Problem Matcher](https://marketplace.visualstudio.com/items?itemName=amodio.tsl-problem-matcher): For better linting integration.
-   - [Extension Test Runner](https://marketplace.visualstudio.com/items?itemName=ms-vscode.extension-test-runner): For running and debugging tests.
-   - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint): To enforce code quality and standards.
-
-2. Run the following commands to install dependencies:
-
+1. Install the recommended extensions for development:
+   - `dbaeumer.vscode-eslint` for linting.
+   - `ms-vscode.extension-test-runner` for testing.
+2. Run the following command to set up dependencies:
    ```
-   bash
    npm install
    ```
 
-## Get Up and Running
+## Running the Extension
 
-1. Press `F5` in VS Code to launch a new window with your extension loaded.
-2. Run your command:
-   - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac).
-   - Type and execute: **`mkh-codeformatter.formatCode`**.
-3. Debug your extension:
-   - Set breakpoints in `src/extension.ts`.
-   - Use the Debug Console to view logs.
+1. Press `F5` in the project workspace to open a new VS Code window with the extension loaded.
+2. Test the extension by running the `mkhCodeFormatter: Format Code` command in the command palette or by using the shortcut `Ctrl+Alt+F`.
 
-## Making Changes
+## Explore the API
 
-- Update the logic in `src/extension.ts` to refine your code formatter.
-- After changes:
-  - Relaunch the extension using the debug toolbar or reload (`Ctrl+R` or `Cmd+R`).
-  - Test your updates in the new VS Code instance.
+To learn more about VS Code's extension API, open the file `node_modules/@types/vscode/index.d.ts`.
 
-## Testing
+## Debugging
 
-1. Run the test suite:
+1. Add `console.log()` in the source code for debugging.
+2. Use the "Extension Host" logs in the Output Panel to view your logs.
 
+## Testing the Extension
+
+1. Run the command:
    ```
-   bash
-   npm test
+   npm run test
    ```
+2. Open the Testing view in VS Code to see the results.
 
-2. Modify or add tests in `src/test/extension.test.ts` or create new test files.
-3. Watch test output in the Testing view or via the Debug Console.
+---
 
-## Advanced Steps
-
-- **Bundle your extension**: Use `esbuild.js` to reduce size and improve startup time.
-- **Publish your extension**:
-  - Follow [publishing guidelines](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
-  - Use `vsce` to package and publish:
-
-    ```
-    bash
-    npm install -g vsce
-    vsce package
-    vsce publish
-    ```
-
-- **Automate CI/CD**: Set up Continuous Integration for automated builds and tests.
-
-## Further Resources
-
-- [VS Code Extension API Documentation](https://code.visualstudio.com/api)
-- [Bundling Extensions](https://code.visualstudio.com/api/working-with-extensions/bundling-extension)
+**Thank you for using mkhCodeFormatter by Mustafa Kamal Hossain!**
