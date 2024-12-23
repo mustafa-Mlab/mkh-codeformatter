@@ -47,16 +47,13 @@ jobs:
       - name: Checkout Main Branch
         uses: actions/checkout@v3
         with:
-          repository: ${{ github.repository }}
           ref: main
 
-
       # Install Node.js
-        - name: Setup Node.js
-          uses: actions/setup-node@v3
-          with:
-            node-version: 'lts/*' # Use the latest LTS version
-
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*' # Use the latest LTS version
 
       # Install dependencies
       - name: Install Dependencies
