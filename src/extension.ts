@@ -1,126 +1,217 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-	// Register the formatCode command
-	const disposable = vscode.commands.registerCommand('mkh-codeformatter.formatCode', () => {
-		// Get the active text editor
-		const editor = vscode.window.activeTextEditor;
-
-		if (!editor) {
-			// Show a warning if no active editor is found
-			vscode.window.showWarningMessage('No active editor found. Open a file to format.');
-			return;
-		}
-
-		// Get the document and its full text
-		const document = editor.document;
-		const fullText = document.getText();
-
-		// Validate the content
-		if (!fullText || fullText.trim() === '') {
-			vscode.window.showWarningMessage('The document is empty or contains only whitespace.');
-			return;
-		}
-
-		try {
-			// Apply custom formatting
-			const formattedText = formatText(fullText);
-
-			// Replace the entire document with the formatted text
-			const entireRange = new vscode.Range(
-				document.positionAt(0),
-				document.positionAt(fullText.length)
-			);
-
-			editor.edit((editBuilder: vscode.TextEditorEdit) => {
-				editBuilder.replace(entireRange, formattedText);
-			}).then(success => {
-				if (success) {
-					vscode.window.showInformationMessage('Document formatted successfully!');
-				} else {
-					vscode.window.showErrorMessage('Failed to apply formatting to the document.');
-				}
-			});
-		} catch (error) {
-			// Log and display any errors that occur during formatting
-			console.error('Error during formatting:', error);
-			vscode.window.showErrorMessage('An error occurred during formatting. Check the logs for details.');
-		}
-	});
-
-	// Add the command to the extension's subscriptions
-	context.subscriptions.push(disposable);
-}
+  // Register the formatCode command
+  const disposable = vscode.commands.registerCommand('mkh-codeformatter.formatCode', () => {
+    const editor = vscode.window.activeTextEditor;
+    
+    if (!editor) {
+      vscode.window.showWarningMessage('No active editor found. Open a file to format.');
+      return;
+      }
+    
+    const document = editor.document;
+    const fullText = document.getText();
+    
+    if (!fullText || fullText.trim() === '') {
+      vscode.window.showWarningMessage('The document is empty or contains only whitespace.');
+      return;
+      }
+    
+    try {
+      const formattedText = formatText(fullText);
+      const entireRange = new vscode.Range(
+        document.positionAt(0),
+        document.positionAt(fullText.length)
+        );
+      
+      editor.edit(editBuilder => {
+        editBuilder.replace(entireRange, formattedText);
+        }).then(success => {
+        if (success) {
+          vscode.window.showInformationMessage('Document formatted successfully!');
+          } else {
+          vscode.window.showErrorMessage('Failed to apply formatting to the document.');
+          }
+        });
+      } catch (error) {
+      console.error('Error during formatting:', error);
+      vscode.window.showErrorMessage('An error occurred during formatting. Check the logs for details.');
+      }
+    });
+  
+  context.subscriptions.push(disposable);
+  }
 
 export function deactivate() {}
 
-// Formatting logic
 export function formatText(text: string): string {
-	const lines = text.split('\n');
-	const formattedLines: string[] = [];
+    const lines = text.split('\n');
+    const formattedLines: string[] = [];
+    const indentationSpaces = vscode.workspace.getConfiguration('mkhCodeFormatter').get<number>('indentationSize', 2);
 
-	// Get the user's preferred indentation size, default to 2 spaces
-	const indentationSpaces = vscode.workspace.getConfiguration('mkhCodeFormatter').get<number>('indentationSize', 2);
+    let indentLevel = 0; // Define the indent level
 
-	let indentLevel = 0;
-	let insidePHPBlock = false;
+    const languageId = vscode.window.activeTextEditor?.document.languageId || 'unknown';
+    console.log(`Formatting file with languageId: ${languageId}`);
 
-	lines.forEach((line, index) => {
-			const trimmedLine = line.trim();
+    lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        console.log(`Processing line ${index + 1}: "${trimmedLine}" (Indent Level: ${indentLevel})`);
 
-			// Handle PHP and Blade blocks
-			if (trimmedLine.startsWith('<?php')) {
-					insidePHPBlock = true;
-			}
-			if (trimmedLine.endsWith('?>')) {
-					insidePHPBlock = false;
-			}
+        if (isComment(trimmedLine)) {
+            const indentedLine = ' '.repeat(indentLevel * indentationSpaces) + line;
+            formattedLines.push(indentedLine);
+            return;
+        }
 
-			if (insidePHPBlock || trimmedLine.startsWith('@')) {
-					// PHP/Blade-specific formatting
-					handlePHPFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
-			} else {
-					// HTML-specific formatting
-					handleHTMLFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
-			}
-	});
+        // Pass indentLevel to each handler and update its value
+        switch (languageId) {
+            case 'html':
+            case 'vue':
+            case 'blade':
+                indentLevel = handleHTMLFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+                break;
 
-	return formattedLines.join('\n');
+            case 'css':
+                indentLevel = handleCSSFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+                break;
+
+            case 'php':
+                indentLevel = handlePHPFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+                break;
+
+            case 'javascript':
+            case 'typescript':
+            case 'javascriptreact':
+            case 'typescriptreact':
+                indentLevel = handleJSFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+                break;
+
+            default:
+                indentLevel = handleGeneralFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+        }
+    });
+
+    return formattedLines.join('\n');
 }
 
-function handlePHPFormatting(trimmedLine: string, formattedLines: string[], indentationSpaces: number, indentLevel: number) {
-	if (trimmedLine.startsWith('}') || trimmedLine.startsWith(']') || trimmedLine.startsWith(');')) {
-			indentLevel = Math.max(0, indentLevel - 1);
-	}
-
-	const indentedLine = ' '.repeat(indentLevel * indentationSpaces) + trimmedLine;
-	formattedLines.push(indentedLine);
-
-	if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[') || (trimmedLine.endsWith('(') && !trimmedLine.includes(');'))) {
-			indentLevel++;
-	}
+// Updated Helper Functions
+function handleHTMLFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+    if (line.startsWith('</')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+    }
+    formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+    if (line.endsWith('>') && !line.startsWith('</') && !isSelfClosingHTMLTag(line)) {
+        currentIndent++;
+    }
+    return currentIndent;
 }
 
-function handleHTMLFormatting(trimmedLine: string, formattedLines: string[], indentationSpaces: number, indentLevel: number) {
-	if (trimmedLine.startsWith('</')) {
-			indentLevel = Math.max(0, indentLevel - 1);
-	}
-
-	const indentedLine = ' '.repeat(indentLevel * indentationSpaces) + trimmedLine;
-	formattedLines.push(indentedLine);
-
-	if (trimmedLine.endsWith('>') && !trimmedLine.startsWith('</') && !isSelfClosingHTMLTag(trimmedLine)) {
-			indentLevel++;
-	}
+function handleCSSFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+    if (line.startsWith('}')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+    }
+    formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+    if (line.endsWith('{')) {
+        currentIndent++;
+    }
+    return currentIndent;
 }
 
+function handlePHPFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+    if (line.startsWith('}') || line.startsWith(']') || line.startsWith(');')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+    }
+    formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+    if (line.endsWith('{') || line.endsWith('[') || (line.endsWith('(') && !line.includes(');'))) {
+        currentIndent++;
+    }
+    return currentIndent;
+}
+
+// function handleJSFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+//     if (line.startsWith('}') || line.startsWith(']') || line.startsWith(');')) {
+//         currentIndent = Math.max(0, currentIndent - 1);
+//     }
+
+//     if (line.startsWith('case ') || line.startsWith('default:')) {
+//         formattedLines.push(' '.repeat(Math.max(0, (currentIndent - 1)) * spaces) + line);
+//         return currentIndent;
+//     }
+
+//     formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+
+//     if (line.endsWith('{') || line.endsWith('[') || line.endsWith('(') || line.startsWith('switch (')) {
+//         currentIndent++;
+//     }
+//     return currentIndent;
+// }
+
+
+
+    /**
+     * Format JavaScript code.
+     *
+     * This function handles the following formatting rules for JavaScript code:
+     * - Decrease indentation level when encountering '}', ']', or ');'.
+     * - Increase indentation level when encountering '{', '[', '(', or 'switch ('.
+     * - Handle case statements in switch blocks.
+     * @param {string} line - The line of code to format.
+     * @param {string[]} formattedLines - The array of formatted lines.
+     * @param {number} spaces - The number of spaces to use for indentation.
+     * @param {number} currentIndent - The current indentation level.
+     * @returns {number} The updated indentation level.
+     */
+function handleJSFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+    if (line.startsWith('}') || line.startsWith(']') || line.startsWith(');')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+    }
+
+    if (line.startsWith('case ') || line.startsWith('default:')) {
+        formattedLines.push(' '.repeat(Math.max(0, (currentIndent - 1)) * spaces) + line);
+        return currentIndent;
+    }
+
+    formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+
+    if (line.endsWith('{') || line.endsWith('[') || line.endsWith('(') || line.startsWith('switch (')) {
+        currentIndent++;
+    }
+    return currentIndent;
+}
+
+    /**
+     * Format code in a general-purpose way.
+     *
+     * This function handles the following formatting rules:
+     * - Decrease indentation level when encountering '}', ']', or ');'.
+     * - Increase indentation level when encountering '{', '[', or '('.
+     * @param {string} line - The line of code to format.
+     * @param {string[]} formattedLines - The array of formatted lines.
+     * @param {number} spaces - The number of spaces to use for indentation.
+     * @param {number} currentIndent - The current indentation level.
+     * @returns {number} The updated indentation level.
+     */
+function handleGeneralFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+    if (line.startsWith('}') || line.startsWith(']') || line.startsWith(');')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+    }
+    formattedLines.push(' '.repeat(currentIndent * spaces) + line);
+    if (line.endsWith('{') || line.endsWith('[') || line.endsWith('(')) {
+        currentIndent++;
+    }
+    return currentIndent;
+}
+
+// Helper Functions
 function isSelfClosingHTMLTag(line: string): boolean {
-	const selfClosingTags = ['img', 'input', 'br', 'hr', 'meta', 'link'];
-	const tagMatch = line.match(/<(\w+)/);
-	if (!tagMatch) { return false; }
-	const tagName = tagMatch[1];
-	return selfClosingTags.includes(tagName);
+    const selfClosingTags = ['img', 'input', 'br', 'hr', 'meta', 'link'];
+    const tagMatch = line.match(/<(\w+)/);
+    return tagMatch ? selfClosingTags.includes(tagMatch[1]) : false;
 }
 
-
-
+function isComment(line: string): boolean {
+    return line.startsWith('//') || line.startsWith('/*') || line.startsWith('*');
+}
+  
