@@ -32,7 +32,10 @@ jobs:
 
       # Push the merged main branch back to the repository
       - name: Push Changes to Main
-        run: git push origin main
+        run: |
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   build-vsix:
     name: Build VSIX
@@ -41,18 +44,24 @@ jobs:
 
     steps:
       # Checkout the main branch
-      - name: Checkout Repository
+      - name: Checkout Main Branch
         uses: actions/checkout@v3
+        with:
+          ref: main
 
       # Install Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # Specify your Node.js version
+          node-version: 'lts' # Always use the latest LTS version of Node.js
 
       # Install dependencies
       - name: Install Dependencies
         run: npm install
+
+      # Run tests
+      - name: Run Tests
+        run: npm run test
 
       # Compile the extension
       - name: Compile Extension
@@ -80,8 +89,10 @@ jobs:
 
     steps:
       # Checkout the repository
-      - name: Checkout Repository
+      - name: Checkout Main Branch
         uses: actions/checkout@v3
+        with:
+          ref: main
 
       # Create a GitHub release
       - name: Create GitHub Release
@@ -89,7 +100,7 @@ jobs:
         with:
           tag_name: "v${{ github.run_number }}"
           release_name: "Release v${{ github.run_number }}"
-          body: "Automated release of mkhCodeFormatter"
+          body: "Automated release of mkhCodeFormatter by Mustafa Kamal Hossain."
           draft: false
           prerelease: false
           files: "*.vsix"
