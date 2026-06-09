@@ -6,6 +6,9 @@ on:
     branches:
       - develop # Trigger the workflow on changes to the develop branch
 
+permissions:
+  contents: write
+
 jobs:
   merge-develop-into-main:
     name: Merge Develop into Main
@@ -16,6 +19,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Ensure all history is fetched for merging
 
       # Configure Git
@@ -34,8 +38,6 @@ jobs:
       - name: Push Changes to Main
         run: |
           git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   build-vsix:
     name: Build VSIX
@@ -62,8 +64,7 @@ jobs:
       # Run tests
       - name: Run Tests
         run: |
-          npx vscode-test --disable-gpu --no-sandbox
-
+          xvfb-run npx vscode-test --disable-gpu --no-sandbox
 
       # Compile the extension
       - name: Compile Extension
@@ -96,12 +97,18 @@ jobs:
         with:
           ref: main
 
-      # Create a GitHub release
+      # Download the VSIX file artifact
+      - name: Download VSIX File
+        uses: actions/download-artifact@v3
+        with:
+          name: mkh-codeformatter.vsix
+
+      # Create a GitHub release and upload assets
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ github.run_number }}"
-          release_name: "Release v${{ github.run_number }}"
+          name: "Release v${{ github.run_number }}"
           body: "Automated release of mkhCodeFormatter by Mustafa Kamal Hossain."
           draft: false
           prerelease: false
