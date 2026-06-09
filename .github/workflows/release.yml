@@ -17,7 +17,7 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.CODEFORMATTER_TOKEN != '' && secrets.CODEFORMATTER_TOKEN || github.token }}
           fetch-depth: 0 # Ensure all history is fetched for merging
@@ -47,13 +47,13 @@ jobs:
     steps:
       # Checkout the main branch
       - name: Checkout Main Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
 
       # Install Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 'lts/*' # Use the latest LTS version
 
@@ -80,7 +80,7 @@ jobs:
 
       # Upload the VSIX file
       - name: Upload VSIX File
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mkh-codeformatter.vsix
           path: "*.vsix"
@@ -93,13 +93,13 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout Main Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
 
       # Download the VSIX file artifact
       - name: Download VSIX File
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mkh-codeformatter.vsix
 
