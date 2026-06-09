@@ -1,6 +1,7 @@
 {
   "name": "mkh-codeformatter",
   "displayName": "mkhCodeFormatter",
+  "publisher": "mustafa-Mlab",
   "description": "A custom VS Code extension for formatting code with 2-space indentation across all languages.",
   "version": "0.0.1",
   "repository": {
