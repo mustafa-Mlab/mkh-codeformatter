@@ -50,4 +50,16 @@ suite('Extension Test Suite', () => {
     const expected = `foo(\n  bar\n),\ntest(\n  baz\n);`;
     assert.strictEqual(formatText(input, 'javascript', 2), expected);
   });
+
+  test('Blade template directives formatting', () => {
+    const input = `@if ($condition)\n<div>\nHello\n</div>\n@else\n<p>\nWorld\n</p>\n@endif`;
+    const expected = `@if ($condition)\n  <div>\n    Hello\n  </div>\n@else\n  <p>\n    World\n  </p>\n@endif`;
+    assert.strictEqual(formatText(input, 'blade', 2), expected);
+  });
+
+  test('SCSS nested block formatting', () => {
+    const input = `.parent {\ncolor: red;\n.child {\ncolor: blue;\n}\n}`;
+    const expected = `.parent {\n  color: red;\n  .child {\n    color: blue;\n  }\n}`;
+    assert.strictEqual(formatText(input, 'scss', 2), expected);
+  });
 });

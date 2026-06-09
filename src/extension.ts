@@ -41,7 +41,33 @@ export function activate(context: vscode.ExtensionContext) {
     });
   
   context.subscriptions.push(disposable);
-  }
+
+  // Register document formatting edit provider for all languages (*)
+  const provider = vscode.languages.registerDocumentFormattingEditProvider('*', {
+    provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.ProviderResult<vscode.TextEdit[]> {
+      const fullText = document.getText();
+      if (!fullText || fullText.trim() === '') {
+        return [];
+      }
+      try {
+        const indentationSize = vscode.workspace.getConfiguration('mkhCodeFormatter', document.uri).get<number>('indentationSize', 2);
+        const formattedText = formatText(fullText, document.languageId, indentationSize);
+        
+        const entireRange = new vscode.Range(
+          document.positionAt(0),
+          document.positionAt(fullText.length)
+        );
+        
+        return [vscode.TextEdit.replace(entireRange, formattedText)];
+      } catch (error) {
+        console.error('Error during formatting:', error);
+        return [];
+      }
+    }
+  });
+
+  context.subscriptions.push(provider);
+}
 
 export function deactivate() {}
 
@@ -109,11 +135,16 @@ export function formatText(text: string, languageId?: string, indentationSpaces?
     switch (languageId) {
       case 'html':
       case 'vue':
-      case 'blade':
       indentLevel = handleHTMLFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
       break;
       
+      case 'blade':
+      indentLevel = handleBladeFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
+      break;
+      
       case 'css':
+      case 'scss':
+      case 'less':
       indentLevel = handleCSSFormatting(trimmedLine, formattedLines, indentationSpaces, indentLevel);
       break;
       
@@ -275,5 +306,49 @@ function getLeadingClosingTagsCount(line: string): number {
   }
   const closingTags = match[0].match(/<\/[a-zA-Z0-9\-:]+>/g);
   return closingTags ? closingTags.length : 0;
+}
+
+function getBladeDirectiveIndentChange(line: string): number {
+  const trimmed = line.trim();
+  const decreaseRegex = /^@(endif|endforeach|endfor|endwhile|endsection|endauth|endguest|endpush|endcan|endunless|endverbatim|endproduction|endenv|endonce)\b/;
+  const increaseRegex = /^@(if|foreach|for|while|section|auth|guest|push|can|unless|verbatim|production|env|once|hasSection)\b/;
+  const bothRegex = /^@(else|elseif|empty)\b/;
+  
+  if (decreaseRegex.test(trimmed)) {
+    return -1;
+  }
+  if (increaseRegex.test(trimmed)) {
+    return 1;
+  }
+  if (bothRegex.test(trimmed)) {
+    return 0;
+  }
+  return 0;
+}
+
+function isLeadingClosingBladeDirective(line: string): boolean {
+  const trimmed = line.trim();
+  const decreaseRegex = /^@(endif|endforeach|endfor|endwhile|endsection|endauth|endguest|endpush|endcan|endunless|endverbatim|endproduction|endenv|endonce)\b/;
+  const bothRegex = /^@(else|elseif|empty)\b/;
+  return decreaseRegex.test(trimmed) || bothRegex.test(trimmed);
+}
+
+function handleBladeFormatting(line: string, formattedLines: string[], spaces: number, currentIndent: number): number {
+  const htmlChange = getHTMLIndentChange(line);
+  const leadingHtmlCloseCount = getLeadingClosingTagsCount(line);
+  
+  const bladeChange = getBladeDirectiveIndentChange(line);
+  const isLeadingBladeClose = isLeadingClosingBladeDirective(line);
+  
+  let printCloseCount = leadingHtmlCloseCount;
+  if (isLeadingBladeClose) {
+    printCloseCount += 1;
+  }
+  
+  const printIndent = Math.max(0, currentIndent - printCloseCount);
+  formattedLines.push(' '.repeat(printIndent * spaces) + line);
+  
+  currentIndent = Math.max(0, currentIndent + htmlChange + bladeChange);
+  return currentIndent;
 }
         
